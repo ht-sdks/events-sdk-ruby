@@ -3,16 +3,16 @@
 require 'thread'
 require 'time'
 
-require 'segment/analytics/defaults'
-require 'segment/analytics/logging'
-require 'segment/analytics/utils'
-require 'segment/analytics/worker'
+require 'hightouch/analytics/defaults'
+require 'hightouch/analytics/logging'
+require 'hightouch/analytics/utils'
+require 'hightouch/analytics/worker'
 
-module Segment
+module Hightouch
   class Analytics
     class Client
-      include Segment::Analytics::Utils
-      include Segment::Analytics::Logging
+      include Hightouch::Analytics::Utils
+      include Hightouch::Analytics::Logging
 
       # @param [Hash] opts
       # @option opts [String] :write_key Your project's write_key
@@ -62,7 +62,7 @@ module Segment
 
       # Tracks an event
       #
-      # @see https://segment.com/docs/sources/server/ruby/#track
+      # @see https://hightouch.com/docs/sources/server/ruby/#track
       #
       # @param [Hash] attrs
       #
@@ -76,7 +76,7 @@ module Segment
 
       # Identifies a user
       #
-      # @see https://segment.com/docs/sources/server/ruby/#identify
+      # @see https://hightouch.com/docs/sources/server/ruby/#identify
       #
       # @param [Hash] attrs
       #
@@ -89,7 +89,7 @@ module Segment
 
       # Aliases a user from one id to another
       #
-      # @see https://segment.com/docs/sources/server/ruby/#alias
+      # @see https://hightouch.com/docs/sources/server/ruby/#alias
       #
       # @param [Hash] attrs
       #
@@ -102,7 +102,7 @@ module Segment
 
       # Associates a user identity with a group.
       #
-      # @see https://segment.com/docs/sources/server/ruby/#group
+      # @see https://hightouch.com/docs/sources/server/ruby/#group
       #
       # @param [Hash] attrs
       #
@@ -116,7 +116,7 @@ module Segment
 
       # Records a page view
       #
-      # @see https://segment.com/docs/sources/server/ruby/#page
+      # @see https://hightouch.com/docs/sources/server/ruby/#page
       #
       # @param [Hash] attrs
       #

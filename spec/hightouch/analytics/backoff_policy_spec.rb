@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-module Segment
+module Hightouch
   class Analytics
     describe BackoffPolicy do
       describe '#initialize' do

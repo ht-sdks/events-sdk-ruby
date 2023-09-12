@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-module Segment
+module Hightouch
   class Analytics
     module Defaults
       module Request
-        HOST = 'api.segment.io'
+        HOST = 'events.us-east-1.hightouch.com'
         PORT = 443
-        PATH = '/v1/import'
+        PATH = '/v1/batch'
         SSL = true
         HEADERS = { 'Accept' => 'application/json',
                     'Content-Type' => 'application/json',
-                    'User-Agent' => "analytics-ruby/#{Analytics::VERSION}" }
+                    'User-Agent' => "events-sdk-ruby/#{Analytics::VERSION}" }
         RETRIES = 10
       end
 

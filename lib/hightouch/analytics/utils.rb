@@ -2,7 +2,7 @@
 
 require 'securerandom'
 
-module Segment
+module Hightouch
   class Analytics
     module Utils
       extend self

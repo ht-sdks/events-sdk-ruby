@@ -1,28 +1,28 @@
 # frozen_string_literal: true
 
-require 'segment/analytics/version'
-require 'segment/analytics/defaults'
-require 'segment/analytics/utils'
-require 'segment/analytics/field_parser'
-require 'segment/analytics/client'
-require 'segment/analytics/worker'
-require 'segment/analytics/transport'
-require 'segment/analytics/response'
-require 'segment/analytics/logging'
-require 'segment/analytics/test_queue'
+require 'hightouch/analytics/version'
+require 'hightouch/analytics/defaults'
+require 'hightouch/analytics/utils'
+require 'hightouch/analytics/field_parser'
+require 'hightouch/analytics/client'
+require 'hightouch/analytics/worker'
+require 'hightouch/analytics/transport'
+require 'hightouch/analytics/response'
+require 'hightouch/analytics/logging'
+require 'hightouch/analytics/test_queue'
 
-module Segment
+module Hightouch
   class Analytics
-    # Initializes a new instance of {Segment::Analytics::Client}, to which all
+    # Initializes a new instance of {Hightouch::Analytics::Client}, to which all
     # method calls are proxied.
     #
     # @param options includes options that are passed down to
-    #   {Segment::Analytics::Client#initialize}
+    #   {Hightouch::Analytics::Client#initialize}
     # @option options [Boolean] :stub (false) If true, requests don't hit the
     #   server and are stubbed to be successful.
     def initialize(options = {})
       Transport.stub = options[:stub] if options.has_key?(:stub)
-      @client = Segment::Analytics::Client.new options
+      @client = Hightouch::Analytics::Client.new options
     end
 
     def method_missing(message, *args, &block)

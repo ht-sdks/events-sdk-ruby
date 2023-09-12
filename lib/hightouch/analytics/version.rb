@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-module Segment
+module Hightouch
   class Analytics
-    VERSION = '2.4.2'
+    VERSION = '0.0.1'
   end
 end

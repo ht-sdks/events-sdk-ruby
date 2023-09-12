@@ -1,7 +1,7 @@
 inherit_from: .rubocop_todo.yml
 
 AllCops:
-  TargetRubyVersion: '2.0'
+  TargetRubyVersion: "2.0"
   SuggestExtensions: false
   NewCops: disable
 
@@ -38,7 +38,7 @@ Metrics/PerceivedComplexity:
 
 Naming/FileName:
   Exclude:
-    - lib/analytics-ruby.rb # Gem name, added for easier Gemfile usage
+    - lib/events-sdk-ruby.rb # Gem name, added for easier Gemfile usage
 
 Naming/PredicateName:
   AllowedMethods:
@@ -46,11 +46,11 @@ Naming/PredicateName:
 
 Style/BlockDelimiters:
   Exclude:
-    - 'spec/**/*'
+    - "spec/**/*"
 
 Style/DateTime:
   Exclude:
-    - 'spec/**/*.rb'
+    - "spec/**/*.rb"
 
 Style/Documentation:
   Enabled: false
@@ -66,7 +66,7 @@ Style/GuardClause:
 Style/HashSyntax:
   EnforcedStyle: hash_rockets
   Exclude:
-    - 'spec/**/*.rb'
+    - "spec/**/*.rb"
 
 Style/ModuleFunction:
   Enabled: false

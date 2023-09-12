@@ -2,7 +2,7 @@
 
 require 'spec_helper'
 
-module Segment
+module Hightouch
   class Analytics
     describe Client do
       let(:client) do

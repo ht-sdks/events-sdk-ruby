@@ -1,21 +1,21 @@
 # frozen_string_literal: true
 
-require 'segment/analytics/defaults'
-require 'segment/analytics/message_batch'
-require 'segment/analytics/transport'
-require 'segment/analytics/utils'
+require 'hightouch/analytics/defaults'
+require 'hightouch/analytics/message_batch'
+require 'hightouch/analytics/transport'
+require 'hightouch/analytics/utils'
 
-module Segment
+module Hightouch
   class Analytics
     class Worker
-      include Segment::Analytics::Utils
-      include Segment::Analytics::Defaults
-      include Segment::Analytics::Logging
+      include Hightouch::Analytics::Utils
+      include Hightouch::Analytics::Defaults
+      include Hightouch::Analytics::Logging
 
       # public: Creates a new worker
       #
       # The worker continuously takes messages off the queue
-      # and makes requests to the segment.io api
+      # and makes requests to the hightouch api
       #
       # queue   - Queue synchronized between client and worker
       # write_key  - String of the project's Write key

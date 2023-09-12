@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require 'segment/analytics/defaults'
+require 'hightouch/analytics/defaults'
 
-module Segment
+module Hightouch
   class Analytics
     class BackoffPolicy
-      include Segment::Analytics::Defaults::BackoffPolicy
+      include Hightouch::Analytics::Defaults::BackoffPolicy
 
       # @param [Hash] opts
       # @option opts [Numeric] :min_timeout_ms The minimum backoff timeout

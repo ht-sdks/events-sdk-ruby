@@ -15,8 +15,8 @@ check: install  # Installation required for testing binary
 
 # Compile the code and produce any binaries where applicable.
 build:
-	rm -f analytics-ruby-*.gem
-	gem build ./analytics-ruby.gemspec
+	rm -f events-sdk-ruby-*.gem
+	gem build ./events-sdk-ruby.gemspec
 
 install: build
-	gem install analytics-ruby-*.gem
+	gem install events-sdk-ruby-*.gem

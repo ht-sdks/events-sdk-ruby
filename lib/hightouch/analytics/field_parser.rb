@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
-module Segment
+module Hightouch
   class Analytics
-    # Handles parsing fields according to the Segment Spec
+    # Handles parsing fields according to the Hightouch Spec
     #
-    # @see https://segment.com/docs/spec/
+    # @see https://hightouch.com/docs/spec/
     class FieldParser
       class << self
-        include Segment::Analytics::Utils
+        include Hightouch::Analytics::Utils
 
         # In addition to the common fields, track accepts:
         #
@@ -173,7 +173,7 @@ module Segment
         end
 
         def add_context!(context)
-          context[:library] = { :name => 'analytics-ruby', :version => Segment::Analytics::VERSION.to_s }
+          context[:library] = { :name => 'events-sdk-ruby', :version => Hightouch::Analytics::VERSION.to_s }
         end
 
         # private: Ensures that a string is non-empty

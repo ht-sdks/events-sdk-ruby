@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Segment
+module Hightouch
   class Analytics
     class Response
       attr_reader :status, :error

@@ -1,18 +1,19 @@
 # frozen_string_literal: true
 
-# https://github.com/codecov/codecov-ruby#usage
-require 'simplecov'
-SimpleCov.start
-require 'codecov'
-SimpleCov.formatter = SimpleCov::Formatter::Codecov
+# for now, skip codecov
+# # https://github.com/codecov/codecov-ruby#usage
+# require 'simplecov'
+# SimpleCov.start
+# require 'codecov'
+# SimpleCov.formatter = SimpleCov::Formatter::Codecov
 
-require 'segment/analytics'
+require 'hightouch/analytics'
 require 'active_support/time'
 
 # Setting timezone for ActiveSupport::TimeWithZone to UTC
 Time.zone = 'UTC'
 
-module Segment
+module Hightouch
   class Analytics
     WRITE_KEY = 'testsecret'
 

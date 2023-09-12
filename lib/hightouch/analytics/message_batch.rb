@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
 require 'forwardable'
-require 'segment/analytics/logging'
+require 'hightouch/analytics/logging'
 
-module Segment
+module Hightouch
   class Analytics
     # A batch of `Message`s to be sent to the API
     class MessageBatch
       class JSONGenerationError < StandardError; end
 
       extend Forwardable
-      include Segment::Analytics::Logging
-      include Segment::Analytics::Defaults::MessageBatch
+      include Hightouch::Analytics::Logging
+      include Hightouch::Analytics::Defaults::MessageBatch
 
       def initialize(max_message_count)
         @messages = []
