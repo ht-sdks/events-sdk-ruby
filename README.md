@@ -19,6 +19,8 @@ gem install 'events-sdk-ruby'
 Create an instance of the Analytics object:
 
 ```ruby
+require 'hightouch'
+
 analytics = Hightouch::Analytics.new(write_key: 'YOUR_WRITE_KEY')
 ```
 
