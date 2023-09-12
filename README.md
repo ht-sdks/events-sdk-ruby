@@ -1,4 +1,4 @@
-# Events Ruby SDK
+# Events SDK Ruby
 
 ## Installation
 
