@@ -4,7 +4,7 @@ module Hightouch
   class Analytics
     module Defaults
       module Request
-        HOST = 'events.us-east-1.hightouch.com'
+        HOST = 'us-east-1.hightouch-events.com'
         PORT = 443
         PATH = '/v1/batch'
         SSL = true

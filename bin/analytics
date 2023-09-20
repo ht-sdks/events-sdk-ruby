@@ -7,7 +7,7 @@ require 'time'
 require 'json'
 
 program :name, 'simulator.rb'
-program :version, '0.0.1'
+program :version, '0.0.2'
 program :description, 'scripting simulator'
 
 def json_hash(str)
