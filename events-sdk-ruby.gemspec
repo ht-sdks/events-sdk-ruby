@@ -21,10 +21,10 @@ Gem::Specification.new do |spec|
   # Used in specs
   spec.add_development_dependency 'rake', '~> 13.0'
   spec.add_development_dependency 'rspec', '~> 3.0'
-  spec.add_development_dependency 'tzinfo', '~> 1.2'
-  spec.add_development_dependency 'activesupport', '~> 5.2.0'
+  spec.add_development_dependency 'tzinfo', '~> 2.0'
+  spec.add_development_dependency 'activesupport', '~> 7.0'
   if RUBY_PLATFORM != 'java'
-    spec.add_development_dependency 'oj', '~> 3.6.2'
+    spec.add_development_dependency 'oj', '~> 3.16'
   end
   spec.add_development_dependency 'rubocop', '~> 1.0'
   spec.add_development_dependency 'codecov', '~> 0.6'
