@@ -283,10 +283,6 @@ Publishing is automated via GitHub Actions when a GitHub Release is created.
 
 The `.rubocop.yml` uses the old `Naming/PredicateName` cop name which has been renamed to `Naming/PredicatePrefix`. RuboCop handles this automatically with a warning but the config file should eventually be updated.
 
-### Pre-existing Test Failure
-
-The transport spec (`spec/hightouch/analytics/transport_spec.rb`) has a known failure related to JSON error message format differences across Ruby/Oj versions. The test expects `Malformed JSON` in the error string but newer JSON parsers produce a different message format.
-
 ### Bundler Permission Errors
 
 If you see `Gem::FilePermissionError` when running `bundle install`, use a local path:

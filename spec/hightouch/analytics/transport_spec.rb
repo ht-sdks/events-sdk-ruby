@@ -235,7 +235,7 @@ module Hightouch
 
             it 'has a connection error' do
               error = subject.send(write_key, batch).error
-              expect(error).to match(/Malformed JSON/)
+              expect(error).to match(/Malformed/)
             end
 
             it_behaves_like('retried request', 200, 'Malformed JSON ---')
