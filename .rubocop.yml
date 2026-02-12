@@ -40,7 +40,7 @@ Naming/FileName:
   Exclude:
     - lib/events-sdk-ruby.rb # Gem name, added for easier Gemfile usage
 
-Naming/PredicateName:
+Naming/PredicatePrefix:
   AllowedMethods:
     - is_requesting? # Can't be renamed, backwards compatibility
 
