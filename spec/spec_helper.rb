@@ -8,6 +8,7 @@
 # SimpleCov.formatter = SimpleCov::Formatter::Codecov
 
 require 'hightouch/analytics'
+require 'active_support'
 require 'active_support/time'
 
 # Setting timezone for ActiveSupport::TimeWithZone to UTC
