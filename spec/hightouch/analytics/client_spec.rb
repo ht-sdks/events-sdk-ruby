@@ -249,6 +249,21 @@ module Hightouch
             client.screen Utils.stringify_keys(Queued::SCREEN)
           end.to_not raise_error
         end
+
+        it 'does not error without name' do
+          expect { client.screen :user_id => 1234 }.to_not raise_error
+
+          message = queue.pop
+          expect(message[:name]).to eq('')
+        end
+
+        it 'accepts name' do
+          client.screen :name => 'Home', :user_id => 1234
+
+          message = queue.pop
+          expect(message[:userId]).to eq(1234)
+          expect(message[:name]).to eq('Home')
+        end
       end
 
       describe '#flush' do
