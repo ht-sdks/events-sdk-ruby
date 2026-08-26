@@ -113,18 +113,17 @@ module Hightouch
         def parse_for_screen(fields)
           common = parse_common_fields(fields)
 
-          name = fields[:name]
+          name = fields[:name] || ''
           properties = fields[:properties] || {}
           category = fields[:category]
 
-          check_presence!(name, 'name')
           check_is_hash!(properties, 'properties')
 
           isoify_dates! properties
 
           parsed = common.merge({
             :type => 'screen',
-            :name => name,
+            :name => name.to_s,
             :properties => properties
           })
 
