@@ -10,6 +10,7 @@
 require 'hightouch/analytics'
 
 begin
+  require 'active_support'
   require 'active_support/time'
   # Setting timezone for ActiveSupport::TimeWithZone to UTC
   Time.zone = 'UTC'
