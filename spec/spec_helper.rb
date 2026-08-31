@@ -8,10 +8,15 @@
 # SimpleCov.formatter = SimpleCov::Formatter::Codecov
 
 require 'hightouch/analytics'
-require 'active_support/time'
 
-# Setting timezone for ActiveSupport::TimeWithZone to UTC
-Time.zone = 'UTC'
+begin
+  require 'active_support'
+  require 'active_support/time'
+  # Setting timezone for ActiveSupport::TimeWithZone to UTC
+  Time.zone = 'UTC'
+rescue LoadError
+  # activesupport is only installed on Ruby >= 3.1 (patched 7.2+)
+end
 
 module Hightouch
   class Analytics

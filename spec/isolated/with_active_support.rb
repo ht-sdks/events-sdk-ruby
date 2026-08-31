@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'isolated/json_example'
 
-describe 'with active_support' do
+describe 'with active_support', :if => defined?(ActiveSupport) do
   before do
     require 'active_support'
     require 'active_support/json'

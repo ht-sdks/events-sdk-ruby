@@ -150,7 +150,7 @@ bundle install
 
 ### ActiveSupport Compatibility
 
-The gemspec pins `activesupport` to `~> 5.2.0`. This is a development dependency used only in specs for `ActiveSupport::TimeWithZone` testing. Major version bumps may require spec updates.
+The gemspec requires `activesupport` `>= 7.2.3.1` (and `tzinfo` `~> 2.0`) on Ruby >= 3.1. This is a development dependency used only in specs for `ActiveSupport::TimeWithZone` testing. Older Rubies skip the gem because 5.2 is EOL and unpatched.
 
 ### Oj Gem (C Extension)
 
