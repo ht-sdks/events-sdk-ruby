@@ -32,5 +32,8 @@ Gem::Specification.new do |spec|
     spec.add_development_dependency 'oj', '~> 3.17.6'
   end
   spec.add_development_dependency 'rubocop', '~> 1.0'
-  spec.add_development_dependency 'codecov', '~> 0.6'
+  # codecov 0.6 requires Ruby < 4 and is currently unused in specs.
+  if Gem::Version.new(RUBY_VERSION) < Gem::Version.new('4.0')
+    spec.add_development_dependency 'codecov', '~> 0.6'
+  end
 end
