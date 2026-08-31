@@ -126,9 +126,11 @@ module Hightouch
         end
 
         it 'returns true if there is a current batch' do
+          send_started = Queue.new
           Hightouch::Analytics::Transport
             .any_instance
             .stub(:send) {
+              send_started << true
               sleep(0.2)
               Hightouch::Analytics::Response.new(200, 'Success')
             }
@@ -138,7 +140,8 @@ module Hightouch
           worker = Hightouch::Analytics::Worker.new(queue, 'testsecret')
 
           worker_thread = Thread.new { worker.run }
-          eventually { expect(worker.is_requesting?).to eq(true) }
+          send_started.pop
+          expect(worker.is_requesting?).to eq(true)
 
           worker_thread.join
           expect(worker.is_requesting?).to eq(false)
