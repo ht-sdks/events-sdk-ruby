@@ -3,7 +3,7 @@
 require 'spec_helper'
 require 'isolated/json_example'
 
-if RUBY_VERSION >= '2.0' && RUBY_PLATFORM != 'java'
+if Gem::Version.new(RUBY_VERSION) >= Gem::Version.new('2.7') && RUBY_PLATFORM != 'java'
   describe 'with oj' do
     before do
       require 'oj'

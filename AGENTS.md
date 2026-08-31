@@ -154,7 +154,7 @@ The gemspec pins `activesupport` to `~> 5.2.0`. This is a development dependency
 
 ### Oj Gem (C Extension)
 
-The `oj` gem (`~> 3.6.2`) requires native compilation. Ensure you have build tools installed:
+The `oj` gem (`~> 3.17.6`) requires native compilation and MRI Ruby >= 2.7. Ensure you have build tools installed:
 
 ```bash
 # Ubuntu/Debian
@@ -164,7 +164,7 @@ sudo apt-get install build-essential ruby-dev
 xcode-select --install
 ```
 
-The `oj` gem is excluded on JRuby (`RUBY_PLATFORM != 'java'`).
+The `oj` gem is excluded on JRuby (`RUBY_PLATFORM != 'java'`) and on MRI Ruby < 2.7.
 
 ### RuboCop Version Warnings
 
