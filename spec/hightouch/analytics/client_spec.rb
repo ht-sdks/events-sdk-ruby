@@ -96,10 +96,10 @@ module Hightouch
           message = queue.pop
           properties = message[:properties]
 
-          date_time = DateTime.new(2013, 1, 1)
-          expect(Time.iso8601(properties[:time])).to eq(date_time)
-          expect(Time.iso8601(properties[:time_with_zone])).to eq(date_time) if properties.has_key?(:time_with_zone)
-          expect(Time.iso8601(properties[:date_time])).to eq(date_time)
+          expected_time = Time.utc(2013, 1, 1)
+          expect(Time.iso8601(properties[:time])).to eq(expected_time)
+          expect(Time.iso8601(properties[:time_with_zone])).to eq(expected_time) if properties.has_key?(:time_with_zone)
+          expect(Time.iso8601(properties[:date_time])).to eq(expected_time)
 
           date = Date.new(2013, 1, 1)
           expect(Date.iso8601(properties[:date])).to eq(date)
@@ -144,10 +144,10 @@ module Hightouch
           message = queue.pop
           traits = message[:traits]
 
-          date_time = DateTime.new(2013, 1, 1)
-          expect(Time.iso8601(traits[:time])).to eq(date_time)
-          expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time) if traits.has_key?(:time_with_zone)
-          expect(Time.iso8601(traits[:date_time])).to eq(date_time)
+          expected_time = Time.utc(2013, 1, 1)
+          expect(Time.iso8601(traits[:time])).to eq(expected_time)
+          expect(Time.iso8601(traits[:time_with_zone])).to eq(expected_time) if traits.has_key?(:time_with_zone)
+          expect(Time.iso8601(traits[:date_time])).to eq(expected_time)
 
           date = Date.new(2013, 1, 1)
           expect(Date.iso8601(traits[:date])).to eq(date)
@@ -211,10 +211,10 @@ module Hightouch
           message = queue.pop
           traits = message[:traits]
 
-          date_time = DateTime.new(2013, 1, 1)
-          expect(Time.iso8601(traits[:time])).to eq(date_time)
-          expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time) if traits.has_key?(:time_with_zone)
-          expect(Time.iso8601(traits[:date_time])).to eq(date_time)
+          expected_time = Time.utc(2013, 1, 1)
+          expect(Time.iso8601(traits[:time])).to eq(expected_time)
+          expect(Time.iso8601(traits[:time_with_zone])).to eq(expected_time) if traits.has_key?(:time_with_zone)
+          expect(Time.iso8601(traits[:date_time])).to eq(expected_time)
 
           date = Date.new(2013, 1, 1)
           expect(Date.iso8601(traits[:date])).to eq(date)
