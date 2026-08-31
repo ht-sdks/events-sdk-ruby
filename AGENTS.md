@@ -9,7 +9,7 @@ This file provides guidance for AI agents updating dependencies in this Ruby gem
 - **Testing**: RSpec + isolated specs
 - **Linting**: RuboCop
 - **Build**: `gem build`
-- **CI**: GitHub Actions (`.github/workflows/ruby.yml`) — Ruby 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, 3.2
+- **CI**: GitHub Actions (`.github/workflows/ruby.yml`) — Ruby 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, 3.2, 3.3, 3.4, 4.0
 
 ---
 
@@ -120,7 +120,7 @@ Compare test results to your baseline. Fix any failures before proceeding.
 
 ### 7. Verify CI Would Pass
 
-CI runs on Ruby versions 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, and 3.2. The CI workflow steps are:
+CI runs on Ruby versions 2.4, 2.5, 2.6, 2.7, 3.0, 3.1, 3.2, 3.3, 3.4, and 4.0. The CI workflow steps are:
 
 ```bash
 bundle install       # via bundler-cache in CI
