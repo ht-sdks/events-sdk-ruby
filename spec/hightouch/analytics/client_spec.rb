@@ -79,16 +79,20 @@ module Hightouch
         end
 
         it 'converts time and date properties into iso8601 format' do
+          properties_in = {
+            :time => Time.utc(2013),
+            :date_time => DateTime.new(2013, 1, 1),
+            :date => Date.new(2013, 1, 1),
+            :nottime => 'x'
+          }
+          if defined?(ActiveSupport::TimeWithZone)
+            properties_in[:time_with_zone] = Time.zone.parse('2013-01-01')
+          end
+
           client.track({
             :user_id => 'user',
             :event => 'Event',
-            :properties => {
-              :time => Time.utc(2013),
-              :time_with_zone => Time.zone.parse('2013-01-01'),
-              :date_time => DateTime.new(2013, 1, 1),
-              :date => Date.new(2013, 1, 1),
-              :nottime => 'x'
-            }
+            :properties => properties_in
           })
 
           message = queue.pop
@@ -96,7 +100,9 @@ module Hightouch
 
           date_time = DateTime.new(2013, 1, 1)
           expect(Time.iso8601(properties[:time])).to eq(date_time)
-          expect(Time.iso8601(properties[:time_with_zone])).to eq(date_time)
+          if properties.key?(:time_with_zone)
+            expect(Time.iso8601(properties[:time_with_zone])).to eq(date_time)
+          end
           expect(Time.iso8601(properties[:date_time])).to eq(date_time)
 
           date = Date.new(2013, 1, 1)
@@ -126,15 +132,19 @@ module Hightouch
         end
 
         it 'converts time and date traits into iso8601 format' do
+          traits_in = {
+            :time => Time.utc(2013),
+            :date_time => DateTime.new(2013, 1, 1),
+            :date => Date.new(2013, 1, 1),
+            :nottime => 'x'
+          }
+          if defined?(ActiveSupport::TimeWithZone)
+            traits_in[:time_with_zone] = Time.zone.parse('2013-01-01')
+          end
+
           client.identify({
             :user_id => 'user',
-            :traits => {
-              :time => Time.utc(2013),
-              :time_with_zone =>  Time.zone.parse('2013-01-01'),
-              :date_time => DateTime.new(2013, 1, 1),
-              :date => Date.new(2013, 1, 1),
-              :nottime => 'x'
-            }
+            :traits => traits_in
           })
 
           message = queue.pop
@@ -142,7 +152,9 @@ module Hightouch
 
           date_time = DateTime.new(2013, 1, 1)
           expect(Time.iso8601(traits[:time])).to eq(date_time)
-          expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time)
+          if traits.key?(:time_with_zone)
+            expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time)
+          end
           expect(Time.iso8601(traits[:date_time])).to eq(date_time)
 
           date = Date.new(2013, 1, 1)
@@ -190,16 +202,20 @@ module Hightouch
         end
 
         it 'converts time and date traits into iso8601 format' do
+          traits_in = {
+            :time => Time.utc(2013),
+            :date_time => DateTime.new(2013, 1, 1),
+            :date => Date.new(2013, 1, 1),
+            :nottime => 'x'
+          }
+          if defined?(ActiveSupport::TimeWithZone)
+            traits_in[:time_with_zone] = Time.zone.parse('2013-01-01')
+          end
+
           client.identify({
             :user_id => 'user',
             :group_id => 'group',
-            :traits => {
-              :time => Time.utc(2013),
-              :time_with_zone =>  Time.zone.parse('2013-01-01'),
-              :date_time => DateTime.new(2013, 1, 1),
-              :date => Date.new(2013, 1, 1),
-              :nottime => 'x'
-            }
+            :traits => traits_in
           })
 
           message = queue.pop
@@ -207,7 +223,9 @@ module Hightouch
 
           date_time = DateTime.new(2013, 1, 1)
           expect(Time.iso8601(traits[:time])).to eq(date_time)
-          expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time)
+          if traits.key?(:time_with_zone)
+            expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time)
+          end
           expect(Time.iso8601(traits[:date_time])).to eq(date_time)
 
           date = Date.new(2013, 1, 1)
