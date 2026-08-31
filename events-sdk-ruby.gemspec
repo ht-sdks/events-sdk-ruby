@@ -15,6 +15,9 @@ Gem::Specification.new do |spec|
   spec.license = 'MIT'
   spec.required_ruby_version = '>= 2.0'
 
+  # logger left the default gem set in Ruby 4.0
+  spec.add_dependency 'logger'
+
   # Used in the executable testing script
   spec.add_development_dependency 'commander', '~> 4.4'
 
