@@ -85,9 +85,7 @@ module Hightouch
             :date => Date.new(2013, 1, 1),
             :nottime => 'x'
           }
-          if defined?(ActiveSupport::TimeWithZone)
-            properties_in[:time_with_zone] = Time.zone.parse('2013-01-01')
-          end
+          properties_in[:time_with_zone] = Time.zone.parse('2013-01-01') if defined?(ActiveSupport::TimeWithZone)
 
           client.track({
             :user_id => 'user',
@@ -100,9 +98,7 @@ module Hightouch
 
           date_time = DateTime.new(2013, 1, 1)
           expect(Time.iso8601(properties[:time])).to eq(date_time)
-          if properties.key?(:time_with_zone)
-            expect(Time.iso8601(properties[:time_with_zone])).to eq(date_time)
-          end
+          expect(Time.iso8601(properties[:time_with_zone])).to eq(date_time) if properties.has_key?(:time_with_zone)
           expect(Time.iso8601(properties[:date_time])).to eq(date_time)
 
           date = Date.new(2013, 1, 1)
@@ -138,9 +134,7 @@ module Hightouch
             :date => Date.new(2013, 1, 1),
             :nottime => 'x'
           }
-          if defined?(ActiveSupport::TimeWithZone)
-            traits_in[:time_with_zone] = Time.zone.parse('2013-01-01')
-          end
+          traits_in[:time_with_zone] = Time.zone.parse('2013-01-01') if defined?(ActiveSupport::TimeWithZone)
 
           client.identify({
             :user_id => 'user',
@@ -152,9 +146,7 @@ module Hightouch
 
           date_time = DateTime.new(2013, 1, 1)
           expect(Time.iso8601(traits[:time])).to eq(date_time)
-          if traits.key?(:time_with_zone)
-            expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time)
-          end
+          expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time) if traits.has_key?(:time_with_zone)
           expect(Time.iso8601(traits[:date_time])).to eq(date_time)
 
           date = Date.new(2013, 1, 1)
@@ -208,9 +200,7 @@ module Hightouch
             :date => Date.new(2013, 1, 1),
             :nottime => 'x'
           }
-          if defined?(ActiveSupport::TimeWithZone)
-            traits_in[:time_with_zone] = Time.zone.parse('2013-01-01')
-          end
+          traits_in[:time_with_zone] = Time.zone.parse('2013-01-01') if defined?(ActiveSupport::TimeWithZone)
 
           client.identify({
             :user_id => 'user',
@@ -223,9 +213,7 @@ module Hightouch
 
           date_time = DateTime.new(2013, 1, 1)
           expect(Time.iso8601(traits[:time])).to eq(date_time)
-          if traits.key?(:time_with_zone)
-            expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time)
-          end
+          expect(Time.iso8601(traits[:time_with_zone])).to eq(date_time) if traits.has_key?(:time_with_zone)
           expect(Time.iso8601(traits[:date_time])).to eq(date_time)
 
           date = Date.new(2013, 1, 1)
