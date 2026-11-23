@@ -42,11 +42,7 @@ module Hightouch
 
         last_response, exception = retry_with_backoff(@retries) do
           status_code, body = send_request(write_key, batch)
-          error = if [401, 403, 404].include?(status_code)
-                    body
-                  else
-                    JSON.parse(body)['error']
-                  end
+          error = response_error(status_code, body)
           should_retry = should_retry_request?(status_code, body)
           logger.debug("Response status code: #{status_code}")
           logger.debug("Response error: #{error}") if error
@@ -70,10 +66,16 @@ module Hightouch
 
       private
 
+      def response_error(status_code, body)
+        return body if [401, 403, 404].include?(status_code)
+
+        JSON.parse(body)['error']
+      end
+
       def should_retry_request?(status_code, body)
         if status_code >= 500
           true # Server error
-        elsif status_code == 408 || status_code == 429
+        elsif [408, 429].include?(status_code)
           true # Request timeout or rate limit
         elsif status_code >= 400
           logger.error(body)

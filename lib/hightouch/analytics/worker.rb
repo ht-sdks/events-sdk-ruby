@@ -44,17 +44,7 @@ module Hightouch
             consume_message_from_queue! until @batch.full? || @queue.empty?
           end
 
-          delay = 1
-          loop do
-            res = @transport.send @write_key, @batch
-            @on_error.call(res.status, res.error) unless res.status == 200
-            break unless [401, 403, 404].include?(res.status)
-            return if Thread.current[:should_exit]
-
-            logger.warn("Collector returned HTTP #{res.status}. Check the write key and endpoint. Retrying in #{delay}s.")
-            sleep(delay)
-            delay = [delay * 2, 60].min
-          end
+          return unless deliver_batch
 
           @lock.synchronize { @batch.clear }
         end
@@ -69,6 +59,20 @@ module Hightouch
       end
 
       private
+
+      def deliver_batch
+        delay = 1
+        loop do
+          res = @transport.send @write_key, @batch
+          @on_error.call(res.status, res.error) unless res.status == 200
+          return true unless [401, 403, 404].include?(res.status)
+          return false if Thread.current[:should_exit]
+
+          logger.warn("Collector returned HTTP #{res.status}. Check the write key and endpoint. Retrying in #{delay}s.")
+          sleep(delay)
+          delay = [delay * 2, 60].min
+        end
+      end
 
       def consume_message_from_queue!
         @batch << @queue.pop
