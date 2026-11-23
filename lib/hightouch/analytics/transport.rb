@@ -37,10 +37,10 @@ module Hightouch
       # Sends a batch of messages to the API
       #
       # @return [Response] API response
-      def send(write_key, batch)
+      def send(write_key, batch, probe: false)
         logger.debug("Sending request for #{batch.length} items")
 
-        last_response, exception = retry_with_backoff(@retries) do
+        last_response, exception = retry_with_backoff(probe ? 1 : @retries) do
           status_code, body = send_request(write_key, batch)
           error = response_error(status_code, body)
           should_retry = should_retry_request?(status_code, body)

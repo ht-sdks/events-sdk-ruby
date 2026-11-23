@@ -32,19 +32,19 @@ module Hightouch
         @batch = MessageBatch.new(batch_size)
         @lock = Mutex.new
         @transport = Transport.new(options)
+        @retry_delay = 1
       end
 
       # public: Continuously runs the loop to check for new events
       #
       def run
         until Thread.current[:should_exit]
-          return if @queue.empty?
+          return if @queue.empty? && @batch.empty?
 
-          @lock.synchronize do
-            consume_message_from_queue! until @batch.full? || @queue.empty?
-          end
+          fill_batch if @batch.empty?
 
-          return unless deliver_batch
+          delay = deliver_batch
+          return delay if delay
 
           @lock.synchronize { @batch.clear }
         end
@@ -61,16 +61,21 @@ module Hightouch
       private
 
       def deliver_batch
-        delay = 1
-        loop do
-          res = @transport.send @write_key, @batch
-          @on_error.call(res.status, res.error) unless res.status == 200
-          return true unless [401, 403, 404].include?(res.status)
-          return false if Thread.current[:should_exit]
+        res = @transport.send(@write_key, @batch, :probe => @retry_delay > 1)
+        @on_error.call(res.status, res.error) unless res.status == 200
+        if [-1, 401, 403, 404, 408, 429].include?(res.status) || (500..599).cover?(res.status)
+          delay = @retry_delay
+          @retry_delay = [delay * 2, 60].min
+          logger.warn("Collector returned #{res.status}. Retaining batch for retry in #{delay}s.")
+          return delay
+        end
+        @retry_delay = 1
+        nil
+      end
 
-          logger.warn("Collector returned HTTP #{res.status}. Check the write key and endpoint. Retrying in #{delay}s.")
-          sleep(delay)
-          delay = [delay * 2, 60].min
+      def fill_batch
+        @lock.synchronize do
+          consume_message_from_queue! until @batch.full? || @queue.empty?
         end
       end
 

@@ -35,10 +35,12 @@ module Hightouch
           worker = described_class.new(queue, 'original')
           transport = worker.instance_variable_get(:@transport)
           batch = worker.instance_variable_get(:@batch)
-          expect(transport).to receive(:send).with('original', batch).exactly(3).times
-                                             .and_return(Response.new(401), Response.new(404), Response.new(200))
-          expect(worker).to receive(:sleep).with(1).ordered
-          expect(worker).to receive(:sleep).with(2).ordered
+          expect(transport).to receive(:send).with('original', batch, probe: false).and_return(Response.new(401))
+          expect(transport).to receive(:send).with('original', batch, probe: true).twice
+                                             .and_return(Response.new(503), Response.new(200))
+          expect(worker.run).to eq(1)
+          expect(worker.is_requesting?).to be(true)
+          expect(worker.run).to eq(2)
 
           worker.run
           expect(worker.is_requesting?).to be(false)
