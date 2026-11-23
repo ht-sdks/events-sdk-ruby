@@ -29,6 +29,21 @@ module Hightouch
           Hightouch::Analytics::Defaults::Request::BACKOFF = 30.0
         end
 
+        it 'holds the batch and probes the original source until the route recovers' do
+          queue = Queue.new
+          queue << Requested::TRACK
+          worker = described_class.new(queue, 'original')
+          transport = worker.instance_variable_get(:@transport)
+          batch = worker.instance_variable_get(:@batch)
+          expect(transport).to receive(:send).with('original', batch).exactly(3).times
+            .and_return(Response.new(401), Response.new(404), Response.new(200))
+          expect(worker).to receive(:sleep).with(1).ordered
+          expect(worker).to receive(:sleep).with(2).ordered
+
+          worker.run
+          expect(worker.is_requesting?).to be(false)
+        end
+
         it 'does not error if the request fails' do
           expect do
             Hightouch::Analytics::Transport
