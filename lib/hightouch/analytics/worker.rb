@@ -63,7 +63,7 @@ module Hightouch
       def deliver_batch
         res = @transport.send(@write_key, @batch, :probe => @retry_delay > 1)
         @on_error.call(res.status, res.error) unless res.status == 200
-        if [-1, 401, 403, 404, 408, 429].include?(res.status) || (500..599).cover?(res.status)
+        if (res.status == -1 && res.retryable) || [408, 429].include?(res.status) || (500..599).cover?(res.status)
           delay = @retry_delay
           @retry_delay = [delay * 2, 60].min
           logger.warn("Collector returned #{res.status}. Retaining batch for retry in #{delay}s.")

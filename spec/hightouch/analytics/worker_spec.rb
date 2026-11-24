@@ -29,13 +29,13 @@ module Hightouch
           Hightouch::Analytics::Defaults::Request::BACKOFF = 30.0
         end
 
-        it 'holds the batch and probes the original source until the route recovers' do
+        it 'holds the batch after transient retries are exhausted' do
           queue = Queue.new
           queue << Requested::TRACK
           worker = described_class.new(queue, 'original')
           transport = worker.instance_variable_get(:@transport)
           batch = worker.instance_variable_get(:@batch)
-          expect(transport).to receive(:send).with('original', batch, probe: false).and_return(Response.new(401))
+          expect(transport).to receive(:send).with('original', batch, probe: false).and_return(Response.new(408))
           expect(transport).to receive(:send).with('original', batch, probe: true).twice
                                              .and_return(Response.new(503), Response.new(200))
           expect(worker.run).to eq(1)
