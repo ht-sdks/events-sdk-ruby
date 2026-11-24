@@ -191,12 +191,7 @@ module Hightouch
         @worker_mutex.synchronize do
           return if worker_running?
           @worker_thread = Thread.new do
-            until Thread.current[:should_exit]
-              delay = @worker.run
-              break unless delay
-
-              sleep(delay)
-            end
+            @worker.run
           end
         end
       end

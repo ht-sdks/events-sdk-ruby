@@ -3,15 +3,14 @@
 module Hightouch
   class Analytics
     class Response
-      attr_reader :status, :error, :retryable
+      attr_reader :status, :error
 
       # public: Simple class to wrap responses from the API
       #
       #
-      def initialize(status = 200, error = nil, retryable: true)
+      def initialize(status = 200, error = nil)
         @status = status
         @error  = error
-        @retryable = retryable
       end
     end
   end

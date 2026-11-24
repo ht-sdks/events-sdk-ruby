@@ -32,23 +32,20 @@ module Hightouch
         @batch = MessageBatch.new(batch_size)
         @lock = Mutex.new
         @transport = Transport.new(options)
-        @retry_delay = 1
       end
 
       # public: Continuously runs the loop to check for new events
       #
       def run
         until Thread.current[:should_exit]
-          return if @queue.empty? && @batch.empty?
+          return if @queue.empty?
 
-          if @batch.empty?
-            @lock.synchronize do
-              consume_message_from_queue! until @batch.full? || @queue.empty?
-            end
+          @lock.synchronize do
+            consume_message_from_queue! until @batch.full? || @queue.empty?
           end
 
-          delay = deliver_batch
-          return delay if delay
+          res = @transport.send @write_key, @batch
+          @on_error.call(res.status, res.error) unless res.status == 200
 
           @lock.synchronize { @batch.clear }
         end
@@ -63,19 +60,6 @@ module Hightouch
       end
 
       private
-
-      def deliver_batch
-        res = @transport.send(@write_key, @batch, :probe => @retry_delay > 1)
-        @on_error.call(res.status, res.error) unless res.status == 200
-        if (res.status == -1 && res.retryable) || [408, 429].include?(res.status) || (500..599).cover?(res.status)
-          delay = @retry_delay
-          @retry_delay = [delay * 2, 60].min
-          logger.warn("Collector returned #{res.status}. Retaining batch for retry in #{delay}s.")
-          return delay
-        end
-        @retry_delay = 1
-        nil
-      end
 
       def consume_message_from_queue!
         @batch << @queue.pop

@@ -229,16 +229,6 @@ module Hightouch
 
             subject { described_class.new(retries: 0) }
 
-            context 'with a 403 response' do
-              let(:status_code) { 403 }
-
-              it 'reports the parse error without deferring the batch' do
-                result = subject.send(write_key, batch)
-                expect(result.status).to eq(-1)
-                expect(result.retryable).to be(false)
-              end
-            end
-
             it 'returns a -1 for status' do
               expect(subject.send(write_key, batch).status).to eq(-1)
             end
