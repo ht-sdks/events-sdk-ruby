@@ -37,10 +37,12 @@ module Hightouch
       # Sends a batch of messages to the API
       #
       # @return [Response] API response
-      def send(write_key, batch)
+      def send(write_key, batch, probe: false)
         logger.debug("Sending request for #{batch.length} items")
 
-        last_response, exception = retry_with_backoff(@retries) do
+        status_code = nil
+        last_response, exception = retry_with_backoff(probe ? 1 : @retries) do
+          status_code = nil
           status_code, body = send_request(write_key, batch)
           error = JSON.parse(body)['error']
           should_retry = should_retry_request?(status_code, body)
@@ -50,13 +52,7 @@ module Hightouch
           [Response.new(status_code, error), should_retry]
         end
 
-        if exception
-          logger.error(exception.message)
-          exception.backtrace.each { |line| logger.error(line) }
-          Response.new(-1, exception.to_s)
-        else
-          last_response
-        end
+        exception ? failed_response(exception, status_code) : last_response
       end
 
       # Closes a persistent connection if it exists
@@ -65,6 +61,13 @@ module Hightouch
       end
 
       private
+
+      def failed_response(exception, status_code)
+        logger.error(exception.message)
+        exception.backtrace.each { |line| logger.error(line) }
+        retryable = status_code.nil? || [408, 429].include?(status_code) || (500..599).cover?(status_code)
+        Response.new(-1, exception.to_s, :retryable => retryable)
+      end
 
       def should_retry_request?(status_code, body)
         if status_code >= 500
