@@ -41,7 +41,11 @@ module Hightouch
         until Thread.current[:should_exit]
           return if @queue.empty? && @batch.empty?
 
-          fill_batch if @batch.empty?
+          if @batch.empty?
+            @lock.synchronize do
+              consume_message_from_queue! until @batch.full? || @queue.empty?
+            end
+          end
 
           delay = deliver_batch
           return delay if delay
@@ -71,12 +75,6 @@ module Hightouch
         end
         @retry_delay = 1
         nil
-      end
-
-      def fill_batch
-        @lock.synchronize do
-          consume_message_from_queue! until @batch.full? || @queue.empty?
-        end
       end
 
       def consume_message_from_queue!
