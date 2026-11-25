@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'spec_helper'
+require 'timeout'
 
 module Hightouch
   class Analytics
@@ -32,6 +33,22 @@ module Hightouch
       end
 
       describe '#track' do
+        it 'recovers a full queue after its error handler raises' do
+          attempts = Queue.new
+          client = Client.new(:write_key => WRITE_KEY, :max_queue_size => 1, :on_error => proc { raise 'listener' })
+          transport = client.instance_variable_get(:@worker).instance_variable_get(:@transport)
+          allow(transport).to receive(:send) do |_, _, options|
+            attempts << options[:probe]
+            Response.new(options[:probe] ? 200 : 503)
+          end
+          expect(client.track(Queued::TRACK)).to be(true)
+          Timeout.timeout(5) do
+            expect(attempts.pop).to be(false)
+            expect(attempts.pop).to be(true)
+          end
+          client.flush
+        end
+
         it 'errors without an event' do
           expect { client.track(:user_id => 'user') }.to raise_error(ArgumentError)
         end

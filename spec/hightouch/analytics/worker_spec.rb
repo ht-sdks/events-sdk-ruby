@@ -64,7 +64,7 @@ module Hightouch
 
           expect(worker.run).to eq(1)
           now = 1
-          expect { worker.run }.to raise_error(RuntimeError, 'listener')
+          expect(worker.run).to eq(2)
           queue << { 'id' => 'B' }
           expect(worker.run).to eq(1)
           expect(worker.is_requesting?).to be(true)

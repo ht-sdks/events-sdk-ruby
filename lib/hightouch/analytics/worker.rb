@@ -53,7 +53,7 @@ module Hightouch
           res = @transport.send(@write_key, @batch, :probe => probe)
           delay = defer_if_retryable(res)
           begin
-            @on_error.call(res.status, res.error) unless res.status == 200
+            report_error(res, delay) unless res.status == 200
           ensure
             @lock.synchronize { @batch.clear } unless delay
           end
@@ -79,6 +79,14 @@ module Hightouch
       end
 
       private
+
+      def report_error(res, delay)
+        @on_error.call(res.status, res.error)
+      rescue StandardError => e
+        raise unless delay
+
+        logger.warn("Error handler raised while a batch was pending: #{e}")
+      end
 
       def select_batch
         return if @queue.empty? && @deferred.empty?
