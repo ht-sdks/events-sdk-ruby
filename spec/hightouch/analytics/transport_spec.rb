@@ -218,7 +218,7 @@ module Hightouch
             it_behaves_like('retried request', 500, '{}')
             it_behaves_like('retried request', 503, '{}')
 
-            # All 4xx errors other than 429 (rate limited) must be retried
+            it_behaves_like('retried request', 408, '{}')
             it_behaves_like('retried request', 429, '{}')
             it_behaves_like('non-retried request', 404, '{}')
             it_behaves_like('non-retried request', 400, '{}')

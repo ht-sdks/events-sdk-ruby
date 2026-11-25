@@ -69,8 +69,8 @@ module Hightouch
       def should_retry_request?(status_code, body)
         if status_code >= 500
           true # Server error
-        elsif status_code == 429
-          true # Rate limited
+        elsif [408, 429].include?(status_code)
+          true # Request timeout or rate limit
         elsif status_code >= 400
           logger.error(body)
           false # Client error. Do not retry, but log
