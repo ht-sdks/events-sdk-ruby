@@ -131,6 +131,15 @@ module Hightouch
           subject.send(write_key, batch)
         end
 
+        it 'finishes ordinary retries for an invalid request header' do
+          transport = described_class.new(:headers => { 'X-Invalid' => "one\ntwo" }, :retries => 2)
+          expect(transport).to receive(:sleep).once
+          expect(transport.instance_variable_get(:@http)).not_to receive(:start)
+          result = transport.send(write_key, batch)
+          expect(result.status).to eq(-1)
+          expect(result.retryable).to be(false)
+        end
+
         it 'adds basic auth to the Net::HTTP::Post' do
           expect_any_instance_of(Net::HTTP::Post).to receive(:basic_auth)
             .with(write_key, nil)

@@ -40,10 +40,11 @@ module Hightouch
       def send(write_key, batch, probe: false)
         logger.debug("Sending request for #{batch.length} items")
 
-        status_code = nil
+        retryable = false
         last_response, exception = retry_with_backoff(probe ? 1 : @retries) do
-          status_code = nil
-          status_code, body = send_request(write_key, batch)
+          retryable = false
+          status_code, body = send_request(write_key, batch) { retryable = true }
+          retryable = [408, 429].include?(status_code) || (500..599).cover?(status_code)
           error = JSON.parse(body)['error']
           should_retry = should_retry_request?(status_code, body)
           logger.debug("Response status code: #{status_code}")
@@ -52,7 +53,7 @@ module Hightouch
           [Response.new(status_code, error), should_retry]
         end
 
-        exception ? failed_response(exception, status_code) : last_response
+        exception ? failed_response(exception, retryable) : last_response
       end
 
       # Closes a persistent connection if it exists
@@ -62,10 +63,9 @@ module Hightouch
 
       private
 
-      def failed_response(exception, status_code)
+      def failed_response(exception, retryable)
         logger.error(exception.message)
         exception.backtrace.each { |line| logger.error(line) }
-        retryable = status_code.nil? || [408, 429].include?(status_code) || (500..599).cover?(status_code)
         Response.new(-1, exception.to_s, :retryable => retryable)
       end
 
@@ -125,6 +125,7 @@ module Hightouch
 
           [200, '{}']
         else
+          yield # Request construction succeeded; connection failures can enter recovery.
           @http.start unless @http.started? # Maintain a persistent connection
           response = @http.request(request, payload)
           [response.code.to_i, response.body]
