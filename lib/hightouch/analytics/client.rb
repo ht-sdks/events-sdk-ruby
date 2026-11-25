@@ -168,8 +168,7 @@ module Hightouch
           return true
         end
 
-        if @queue.length < @max_queue_size
-          @queue << action
+        if @worker.enqueue_if_room(action, @max_queue_size)
           ensure_worker_running
 
           true

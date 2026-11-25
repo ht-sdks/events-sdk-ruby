@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'monitor'
 require 'hightouch/analytics/defaults'
 require 'hightouch/analytics/message_batch'
 require 'hightouch/analytics/transport'
@@ -28,9 +29,13 @@ module Hightouch
         @queue = queue
         @write_key = write_key
         @on_error = options[:on_error] || proc { |status, error| }
-        batch_size = options[:batch_size] || Defaults::MessageBatch::MAX_SIZE
-        @batch = MessageBatch.new(batch_size)
-        @lock = Mutex.new
+        @batch_size = options[:batch_size] || Defaults::MessageBatch::MAX_SIZE
+        @batch = MessageBatch.new(@batch_size)
+        @deferred = []
+        @deferred_count = 0
+        @prefer_fresh = false
+        @retry_at = 0
+        @lock = Monitor.new
         @transport = Transport.new(options)
         @retry_delay = 1
       end
@@ -39,17 +44,18 @@ module Hightouch
       #
       def run
         until Thread.current[:should_exit]
-          return if @queue.empty? && @batch.empty?
+          remaining = @retry_at - monotonic_time
+          return remaining if remaining.positive?
 
-          if @batch.empty?
-            @lock.synchronize do
-              consume_message_from_queue! until @batch.full? || @queue.empty?
-            end
+          # A raising application callback can leave the previous batch in flight.
+          probe = @lock.synchronize { @batch.empty? ? select_batch : true }
+          return if probe.nil?
+
+          delay = deliver_batch(probe)
+          if delay
+            @lock.synchronize { defer_batch(delay) }
+            return delay
           end
-
-          delay = deliver_batch
-          return delay if delay
-
           @lock.synchronize { @batch.clear }
         end
       ensure
@@ -59,13 +65,49 @@ module Hightouch
       # public: Check whether we have outstanding requests.
       #
       def is_requesting?
-        @lock.synchronize { !@batch.empty? }
+        @lock.synchronize { !@batch.empty? || !@deferred.empty? }
+      end
+
+      def enqueue_if_room(message, limit)
+        @lock.synchronize do
+          return false if @queue.length + @deferred_count >= limit
+
+          @queue << message
+          true
+        end
       end
 
       private
 
-      def deliver_batch
-        res = @transport.send(@write_key, @batch, :probe => @retry_delay > 1)
+      def select_batch
+        return if @queue.empty? && @deferred.empty?
+
+        recovering = !@deferred.empty?
+        if recovering && (@queue.empty? || !@prefer_fresh)
+          @batch = @deferred.shift
+          @deferred_count -= @batch.length
+          @prefer_fresh = true
+          return true
+        end
+
+        consume_message_from_queue! until @batch.full? || @queue.empty?
+        @prefer_fresh = false
+        recovering
+      end
+
+      def defer_batch(delay)
+        @deferred << @batch
+        @deferred_count += @batch.length
+        @batch = MessageBatch.new(@batch_size)
+        @retry_at = monotonic_time + delay
+      end
+
+      def monotonic_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
+      def deliver_batch(probe)
+        res = @transport.send(@write_key, @batch, :probe => probe)
         @on_error.call(res.status, res.error) unless res.status == 200
         if (res.status == -1 && res.retryable) || [408, 429].include?(res.status) || (500..599).cover?(res.status)
           delay = @retry_delay
