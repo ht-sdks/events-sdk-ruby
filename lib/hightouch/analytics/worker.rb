@@ -71,7 +71,8 @@ module Hightouch
 
       def enqueue_if_room(message, limit)
         @lock.synchronize do
-          return false if @queue.length + @deferred_count >= limit
+          in_flight = @probing ? @batch.length : 0
+          return false if @queue.length + @deferred_count + in_flight >= limit
 
           @queue << message
           true
@@ -91,8 +92,8 @@ module Hightouch
       def select_batch
         return if @queue.empty? && @deferred.empty?
 
-        recovering = !@deferred.empty?
-        if recovering && (@queue.empty? || !@prefer_fresh)
+        @probing = !@deferred.empty?
+        if @probing && (@queue.empty? || !@prefer_fresh)
           @batch = @deferred.shift
           @deferred_count -= @batch.length
           @prefer_fresh = true
@@ -101,7 +102,7 @@ module Hightouch
 
         consume_message_from_queue! until @batch.full? || @queue.empty?
         @prefer_fresh = false
-        recovering
+        @probing
       end
 
       def monotonic_time

@@ -55,7 +55,10 @@ module Hightouch
           batch = worker.instance_variable_get(:@batch)
           allow(worker).to receive(:monotonic_time) { now }
           expect(transport).to receive(:send).with('original', batch, probe: false).ordered.and_return(Response.new(408))
-          expect(transport).to receive(:send).with('original', batch, probe: true).ordered.and_return(Response.new(429))
+          expect(transport).to receive(:send).with('original', batch, probe: true).ordered do
+            expect(worker.enqueue_if_room({ 'id' => 'overflow' }, 1)).to be(false)
+            Response.new(429)
+          end
           expect(transport).to receive(:send).ordered do |key, fresh, opts|
             expect([key, JSON.parse(fresh.to_json), opts]).to eq(['original', [{ 'id' => 'B' }], { :probe => true }])
             Response.new(200)
@@ -65,12 +68,14 @@ module Hightouch
           expect(worker.run).to eq(1)
           now = 1
           expect(worker.run).to eq(2)
-          queue << { 'id' => 'B' }
+          expect(worker.enqueue_if_room({ 'id' => 'B' }, 1)).to be(false)
+          expect(worker.enqueue_if_room({ 'id' => 'B' }, 2)).to be(true)
           expect(worker.run).to eq(1)
           expect(worker.is_requesting?).to be(true)
           now = 3
           worker.run
           expect(worker.is_requesting?).to be(false)
+          expect(worker.enqueue_if_room({ 'id' => 'C' }, 1)).to be(true)
         end
 
         it 'does not error if the request fails' do
