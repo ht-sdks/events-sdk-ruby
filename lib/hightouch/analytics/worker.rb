@@ -45,7 +45,7 @@ module Hightouch
       def run
         until Thread.current[:should_exit]
           remaining = @retry_at - monotonic_time
-          return remaining if remaining.positive?
+          return remaining if remaining > 0
 
           probe = @lock.synchronize { @batch.empty? ? select_batch : true }
           return if probe.nil?
@@ -97,6 +97,8 @@ module Hightouch
       end
 
       def monotonic_time
+        return Time.now.to_f unless Process.respond_to?(:clock_gettime)
+
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 

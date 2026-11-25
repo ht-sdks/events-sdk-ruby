@@ -29,6 +29,17 @@ module Hightouch
           Hightouch::Analytics::Defaults::Request::BACKOFF = 30.0
         end
 
+        it 'can upload when the runtime has no monotonic clock' do
+          queue = Queue.new
+          queue << Requested::TRACK
+          worker = described_class.new(queue, 'original')
+          allow(Process).to receive(:respond_to?).and_call_original
+          allow(Process).to receive(:respond_to?).with(:clock_gettime).and_return(false)
+          expect(worker.instance_variable_get(:@transport)).to receive(:send).and_return(Response.new(200))
+          worker.run
+          expect(queue).to be_empty
+        end
+
         it 'lets fresh work pass a failing batch only after the source cooldown' do
           queue = Queue.new
           queue << Requested::TRACK
