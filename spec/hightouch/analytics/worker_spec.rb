@@ -78,6 +78,20 @@ module Hightouch
           expect(worker.enqueue_if_room({ 'id' => 'C' }, 1)).to be(true)
         end
 
+        it 'releases a probe slot before reporting a terminal rejection' do
+          queue = Queue.new
+          queue << Requested::TRACK
+          worker = nil
+          handler = proc { |status, _| expect(worker.enqueue_if_room({}, 1)).to be(true) if status == 400 }
+          worker = described_class.new(queue, 'original', :on_error => handler)
+          allow(worker).to receive(:monotonic_time).and_return(0)
+          transport = worker.instance_variable_get(:@transport)
+          expect(transport).to receive(:send).exactly(3).times.and_return(Response.new(503), Response.new(400), Response.new(200))
+          worker.run
+          allow(worker).to receive(:monotonic_time).and_return(1)
+          worker.run
+        end
+
         it 'does not error if the request fails' do
           expect do
             Hightouch::Analytics::Transport

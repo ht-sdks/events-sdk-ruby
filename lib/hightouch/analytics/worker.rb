@@ -124,6 +124,7 @@ module Hightouch
           end
           return delay
         end
+        @lock.synchronize { @probing = false }
         @retry_delay = 1
         nil
       end
