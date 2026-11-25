@@ -32,10 +32,16 @@ module Hightouch
         it 'lets fresh work pass a failing batch only after the source cooldown' do
           queue = Queue.new
           queue << Requested::TRACK
-          worker = described_class.new(queue, 'original', :on_error => proc { |status, _| raise 'listener' if status == 429 })
+          now = 0
+          on_error = proc do |status, _|
+            if status == 429
+              now += 1
+              raise 'listener'
+            end
+          end
+          worker = described_class.new(queue, 'original', :on_error => on_error)
           transport = worker.instance_variable_get(:@transport)
           batch = worker.instance_variable_get(:@batch)
-          now = 0
           allow(worker).to receive(:monotonic_time) { now }
           expect(transport).to receive(:send).with('original', batch, probe: false).ordered.and_return(Response.new(408))
           expect(transport).to receive(:send).with('original', batch, probe: true).ordered.and_return(Response.new(429))
@@ -49,7 +55,6 @@ module Hightouch
           now = 1
           expect { worker.run }.to raise_error(RuntimeError, 'listener')
           queue << { 'id' => 'B' }
-          now = 2
           expect(worker.run).to eq(1)
           expect(worker.is_requesting?).to be(true)
           now = 3

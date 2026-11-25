@@ -51,11 +51,11 @@ module Hightouch
           return if probe.nil?
 
           res = @transport.send(@write_key, @batch, :probe => probe)
-          delay = retry_delay(res)
+          delay = defer_if_retryable(res)
           begin
             @on_error.call(res.status, res.error) unless res.status == 200
           ensure
-            @lock.synchronize { delay ? defer_batch(delay) : @batch.clear }
+            @lock.synchronize { @batch.clear } unless delay
           end
           return delay if delay
         end
@@ -107,11 +107,12 @@ module Hightouch
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
-      def retry_delay(res)
+      def defer_if_retryable(res)
         if (res.status == -1 && res.retryable) || [408, 429].include?(res.status) || (500..599).cover?(res.status)
           delay = @retry_delay
           @retry_delay = [delay * 2, 60].min
           logger.warn("Collector returned #{res.status}. Retaining batch for retry in #{delay}s.")
+          @lock.synchronize { defer_batch(delay) }
           return delay
         end
         @retry_delay = 1
