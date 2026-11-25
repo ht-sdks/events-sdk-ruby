@@ -96,13 +96,6 @@ module Hightouch
         recovering
       end
 
-      def defer_batch(delay)
-        @deferred << @batch
-        @deferred_count += @batch.length
-        @batch = MessageBatch.new(@batch_size)
-        @retry_at = monotonic_time + delay
-      end
-
       def monotonic_time
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
@@ -112,7 +105,12 @@ module Hightouch
           delay = @retry_delay
           @retry_delay = [delay * 2, 60].min
           logger.warn("Collector returned #{res.status}. Retaining batch for retry in #{delay}s.")
-          @lock.synchronize { defer_batch(delay) }
+          @lock.synchronize do
+            @deferred << @batch
+            @deferred_count += @batch.length
+            @batch = MessageBatch.new(@batch_size)
+            @retry_at = monotonic_time + delay
+          end
           return delay
         end
         @retry_delay = 1
