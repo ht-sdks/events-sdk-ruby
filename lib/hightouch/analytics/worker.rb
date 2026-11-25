@@ -47,16 +47,17 @@ module Hightouch
           remaining = @retry_at - monotonic_time
           return remaining if remaining.positive?
 
-          # A raising application callback can leave the previous batch in flight.
           probe = @lock.synchronize { @batch.empty? ? select_batch : true }
           return if probe.nil?
 
-          delay = deliver_batch(probe)
-          if delay
-            @lock.synchronize { defer_batch(delay) }
-            return delay
+          res = @transport.send(@write_key, @batch, :probe => probe)
+          delay = retry_delay(res)
+          begin
+            @on_error.call(res.status, res.error) unless res.status == 200
+          ensure
+            @lock.synchronize { delay ? defer_batch(delay) : @batch.clear }
           end
-          @lock.synchronize { @batch.clear }
+          return delay if delay
         end
       ensure
         @transport.shutdown
@@ -106,9 +107,7 @@ module Hightouch
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
 
-      def deliver_batch(probe)
-        res = @transport.send(@write_key, @batch, :probe => probe)
-        @on_error.call(res.status, res.error) unless res.status == 200
+      def retry_delay(res)
         if (res.status == -1 && res.retryable) || [408, 429].include?(res.status) || (500..599).cover?(res.status)
           delay = @retry_delay
           @retry_delay = [delay * 2, 60].min
