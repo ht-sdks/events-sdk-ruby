@@ -8,7 +8,7 @@ module Hightouch
       let(:client) do
         Client.new(:write_key => WRITE_KEY).tap { |client|
           # Ensure that worker doesn't consume items from the queue
-          client.instance_variable_set(:@worker, NoopWorker.new)
+          allow(client.instance_variable_get(:@worker)).to receive(:run)
         }
       end
       let(:queue) { client.instance_variable_get :@queue }
@@ -275,8 +275,10 @@ module Hightouch
       describe '#flush' do
         let(:client_with_worker) {
           Client.new(:write_key => WRITE_KEY).tap { |client|
-            queue = client.instance_variable_get(:@queue)
-            client.instance_variable_set(:@worker, DummyWorker.new(queue))
+            allow(client.instance_variable_get(:@worker)).to receive(:run) do
+              q = client.instance_variable_get(:@queue)
+              q.pop until q.empty?
+            end
           }
         }
 
@@ -319,7 +321,7 @@ module Hightouch
         end
 
         it 'returns false if queue is full' do
-          client.instance_variable_set(:@max_queue_size, 1)
+          client.instance_variable_get(:@worker).instance_variable_set(:@limit, 1)
 
           %i[track screen page group identify alias].each do |s|
             expect(client.send(s, data)).to eq(true)

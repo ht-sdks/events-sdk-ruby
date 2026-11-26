@@ -29,6 +29,28 @@ module Hightouch
           Hightouch::Analytics::Defaults::Request::BACKOFF = 30.0
         end
 
+        it 'retains the same events and serves a fresh event during backoff' do
+          worker = described_class.new(Queue.new, 'test', :batch_size => 1, :max_queue_size => 2)
+          clock = 0
+          allow(worker).to receive(:now) { clock }
+          calls = []
+          transport = worker.instance_variable_get(:@transport)
+          allow(transport).to receive(:send) do |_key, batch, _options|
+            id = JSON.parse(batch.to_json).first.fetch('messageId')
+            calls << id
+            if calls.length == 2
+              expect(worker.enqueue_if_room(:messageId => 'B')).to be(true)
+              expect(worker.enqueue_if_room(:messageId => 'C')).to be(false)
+            end
+            Hightouch::Analytics::Response.new(calls.length <= 2 ? 503 : 200)
+          end
+          condition = worker.instance_variable_get(:@ready)
+          allow(condition).to receive(:wait) { |delay| clock += delay }
+          worker.enqueue_if_room(:messageId => 'A')
+          worker.run
+          expect(calls).to eq(%w[A A B A])
+        end
+
         it 'does not error if the request fails' do
           expect do
             Hightouch::Analytics::Transport

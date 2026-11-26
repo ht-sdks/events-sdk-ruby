@@ -25,7 +25,6 @@ module Hightouch
         @queue = Queue.new
         @test = opts[:test]
         @write_key = opts[:write_key]
-        @max_queue_size = opts[:max_queue_size] || Defaults::Queue::MAX_SIZE
         @worker_mutex = Mutex.new
         @worker = Worker.new(@queue, @write_key, opts)
         @worker_thread = nil
@@ -168,8 +167,7 @@ module Hightouch
           return true
         end
 
-        if @queue.length < @max_queue_size
-          @queue << action
+        if @worker.enqueue_if_room(action)
           ensure_worker_running
 
           true

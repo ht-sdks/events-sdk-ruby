@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'monitor'
 require 'hightouch/analytics/defaults'
 require 'hightouch/analytics/message_batch'
 require 'hightouch/analytics/transport'
@@ -28,9 +29,13 @@ module Hightouch
         @queue = queue
         @write_key = write_key
         @on_error = options[:on_error] || proc { |status, error| }
-        batch_size = options[:batch_size] || Defaults::MessageBatch::MAX_SIZE
-        @batch = MessageBatch.new(batch_size)
-        @lock = Mutex.new
+        @batch_size = options[:batch_size] || Defaults::MessageBatch::MAX_SIZE
+        @batch = MessageBatch.new(@batch_size)
+        @lock = Monitor.new
+        @ready = @lock.new_cond
+        @deferred = []
+        @deferred_count = 0
+        @limit = options[:max_queue_size] || Defaults::Queue::MAX_SIZE
         @transport = Transport.new(options)
       end
 
@@ -38,16 +43,20 @@ module Hightouch
       #
       def run
         until Thread.current[:should_exit]
-          return if @queue.empty?
+          deferred = @lock.synchronize { next_batch }
+          return if deferred.nil?
 
-          @lock.synchronize do
-            consume_message_from_queue! until @batch.full? || @queue.empty?
+          res = @transport.send(@write_key, @batch, :probe => deferred)
+          next if retryable?(res) && park_batch(deferred)
+
+          begin
+            @on_error.call(res.status, res.error) unless res.status == 200
+          ensure
+            @lock.synchronize do
+              @deferred_count -= @batch.length if deferred
+              @batch.clear
+            end
           end
-
-          res = @transport.send @write_key, @batch
-          @on_error.call(res.status, res.error) unless res.status == 200
-
-          @lock.synchronize { @batch.clear }
         end
       ensure
         @transport.shutdown
@@ -56,10 +65,63 @@ module Hightouch
       # public: Check whether we have outstanding requests.
       #
       def is_requesting?
-        @lock.synchronize { !@batch.empty? }
+        @lock.synchronize { !@batch.empty? || deferred_ready? }
+      end
+
+      def enqueue_if_room(message)
+        @lock.synchronize do
+          return false if @queue.length + @deferred_count >= @limit
+
+          @queue << message
+          @ready.signal
+          true
+        end
       end
 
       private
+
+      def now
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+
+      def deferred_ready?
+        !@deferred.empty? && @deferred.first[0] <= now
+      end
+
+      def waiting_for_retry?
+        @queue.empty? && !@deferred.empty? && !deferred_ready?
+      end
+
+      def next_batch
+        @ready.wait([@deferred.first[0] - now, 0].max) while waiting_for_retry?
+        if deferred_ready? && (@queue.empty? || !@prefer_fresh)
+          _, @batch = @deferred.shift
+          @prefer_fresh = true
+          return true
+        end
+        return if @queue.empty?
+
+        @prefer_fresh = false
+        consume_message_from_queue! until @batch.full? || @queue.empty?
+        false
+      end
+
+      def retryable?(response)
+        (response.status == -1 && response.retryable) || [408, 429].include?(response.status) ||
+          (500..599).cover?(response.status)
+      end
+
+      def park_batch(reserved)
+        @lock.synchronize do
+          slots = reserved ? 0 : @batch.length
+          return false if @deferred_count + @queue.length + slots > @limit
+
+          @deferred << [now + Defaults::BackoffPolicy::MAX_TIMEOUT_MS / 1000.0, @batch]
+          @deferred_count += slots
+          @batch = MessageBatch.new(@batch_size)
+          true
+        end
+      end
 
       def consume_message_from_queue!
         @batch << @queue.pop
